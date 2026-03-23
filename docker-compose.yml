@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+
+  # ── POSTGRESQL DATABASE ───────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: rental_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - rental-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rental_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── API GATEWAY ───────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - USERS_SERVICE_URL=http://users-service:5001
+      - LISTINGS_SERVICE_URL=http://listings-service:5002
+      - BOOKINGS_SERVICE_URL=http://bookings-service:5003
+      - PAYMENTS_SERVICE_URL=http://payments-service:5004
+      - REVIEWS_SERVICE_URL=http://reviews-service:5005
+    depends_on:
+      - users-service
+      - listings-service
+      - bookings-service
+      - payments-service
+      - reviews-service
+    networks:
+      - rental-network
+
+  # ── USERS SERVICE ─────────────────────────────
+  users-service:
+    build: ./users-service
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/users_db
+      - JWT_SECRET=change-this-secret-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # ── LISTINGS SERVICE ──────────────────────────
+  listings-service:
+    build: ./listings-service
+    ports:
+      - "5002:5002"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/listings_db
+      - JWT_SECRET=change-this-secret-in-production
+      - USERS_SERVICE_URL=http://users-service:5001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # ── BOOKINGS SERVICE ──────────────────────────
+  bookings-service:
+    build: ./bookings-service
+    ports:
+      - "5003:5003"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/bookings_db
+      - JWT_SECRET=change-this-secret-in-production
+      - LISTINGS_SERVICE_URL=http://listings-service:5002
+      - PAYMENTS_SERVICE_URL=http://payments-service:5004
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # ── PAYMENTS SERVICE ──────────────────────────
+  payments-service:
+    build: ./payments-service
+    ports:
+      - "5004:5004"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/payments_db
+      - JWT_SECRET=change-this-secret-in-production
+      - BOOKINGS_SERVICE_URL=http://bookings-service:5003
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+  # ── REVIEWS SERVICE ───────────────────────────
+  reviews-service:
+    build: ./reviews-service
+    ports:
+      - "5005:5005"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/reviews_db
+      - JWT_SECRET=change-this-secret-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rental-network
+
+networks:
+  rental-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

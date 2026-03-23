@@ -1,0 +1,7 @@
+aws_region       = "ap-south-1"
+project_name     = "rental-platform"
+instance_type    = "t3.micro"
+public_key_path  = "~/.ssh/id_rsa.pub"
+allowed_ssh_cidr = "103.81.38.78/32"      # e.g. "103.22.45.10/32"
+jwt_secret       = "rental-platform-super-secret-key-2026"
+db_password      = "postgres123"

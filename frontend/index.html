@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentIndia — Find Your Perfect Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1917;
+    --surface2: #242220;
+    --border: #2e2c29;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --cream: #f5f0e8;
+    --muted: #6b6760;
+    --text: #e8e4dc;
+    --red: #d95f52;
+    --green: #5a9e6f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; top: 24px; right: 24px; z-index: 9999;
+    padding: 14px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transform: translateY(-10px);
+    transition: all 0.3s ease; pointer-events: none;
+    max-width: 320px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { background: var(--green); color: #fff; }
+  #toast.error { background: var(--red); color: #fff; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,14,12,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--gold);
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--cream); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-btn {
+    background: none; border: none;
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    padding: 8px 16px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn:hover { color: var(--text); background: var(--surface); }
+  .nav-btn.active { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  #user-info {
+    font-size: 13px; color: var(--muted);
+    display: none; align-items: center; gap: 8px;
+  }
+  #user-info.visible { display: flex; }
+  .user-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 13px; color: var(--text);
+  }
+  .role-badge {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .role-badge.landlord { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .role-badge.tenant { background: rgba(90,158,111,0.15); color: var(--green); }
+  .btn-logout {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  #page-home {
+    background: var(--bg);
+  }
+  .hero {
+    padding: 100px 32px 80px;
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .hero-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 58px; line-height: 1.1; font-weight: 700;
+    color: var(--cream); margin-bottom: 24px;
+  }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero p {
+    font-size: 17px; line-height: 1.7; color: var(--muted);
+    margin-bottom: 40px; font-weight: 300;
+  }
+  .hero-btns { display: flex; gap: 12px; }
+  .btn-primary {
+    background: var(--gold); color: var(--bg);
+    border: none; padding: 14px 28px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-secondary {
+    background: none; color: var(--text);
+    border: 1px solid var(--border); padding: 14px 28px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .hero-visual {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .stat-card:first-child { grid-column: span 2; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; font-weight: 700; color: var(--gold);
+  }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    max-width: 800px; margin: 0 auto 60px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    display: flex; gap: 12px; align-items: flex-end;
+  }
+  .search-field { flex: 1; }
+  .search-field label {
+    display: block; font-size: 11px; font-weight: 500;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .search-field input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; padding: 10px 14px; border-radius: 8px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-field input:focus { border-color: var(--gold); }
+  .search-field input::placeholder { color: var(--muted); }
+
+  /* ── SECTION ── */
+  .section { max-width: 1200px; margin: 0 auto; padding: 0 32px 80px; }
+  .section-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 600; color: var(--cream);
+  }
+  .section-count { font-size: 14px; color: var(--muted); }
+
+  /* ── LISTINGS GRID ── */
+  .listings-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .listing-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .listing-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(201,168,76,0.1);
+  }
+  .listing-img {
+    height: 180px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative;
+    overflow: hidden;
+  }
+  .listing-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(15,14,12,0.85); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 12px; font-size: 12px; color: var(--gold); font-weight: 500;
+  }
+  .listing-body { padding: 20px; }
+  .listing-city { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .listing-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--cream); margin-bottom: 8px; line-height: 1.3; }
+  .listing-address { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .listing-meta { display: flex; gap: 16px; margin-bottom: 16px; }
+  .listing-meta-item { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .listing-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); }
+  .listing-price { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: var(--cream); }
+  .listing-price span { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); font-weight: 400; }
+  .btn-book {
+    background: var(--gold); color: var(--bg);
+    border: none; padding: 9px 18px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-book:hover { background: var(--gold-light); }
+  .empty-state {
+    grid-column: span 3; text-align: center;
+    padding: 80px 20px; color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 16px; }
+
+  /* ── AUTH PAGE ── */
+  #page-auth {
+    min-height: calc(100vh - 64px);
+    padding: 40px 20px;
+  }
+  #page-auth.active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 48px; width: 100%; max-width: 420px;
+  }
+  .auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 600; color: var(--cream);
+    margin-bottom: 8px;
+  }
+  .auth-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
+  .auth-tabs { display: flex; gap: 4px; margin-bottom: 32px; background: var(--surface2); border-radius: 8px; padding: 4px; }
+  .auth-tab {
+    flex: 1; padding: 9px; border: none; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; background: none; color: var(--muted);
+  }
+  .auth-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 20px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  label { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+  input, select, textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; padding: 11px 14px; border-radius: 8px;
+    outline: none; transition: border-color 0.2s;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 100px; }
+  .btn-full {
+    width: 100%; background: var(--gold); color: var(--bg);
+    border: none; padding: 14px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+  }
+  .btn-full:hover { background: var(--gold-light); }
+  .btn-full:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── DASHBOARD ── */
+  #page-dashboard { padding: 48px 32px; max-width: 1200px; margin: 0 auto; }
+  .dash-header { margin-bottom: 48px; }
+  .dash-greeting {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px; color: var(--cream); margin-bottom: 8px;
+  }
+  .dash-greeting span { color: var(--gold); }
+  .dash-sub { font-size: 15px; color: var(--muted); }
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .dash-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .dash-card-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dash-card-title { font-size: 15px; font-weight: 500; color: var(--cream); }
+  .dash-card-body { padding: 24px; }
+  .booking-item, .listing-item {
+    padding: 16px; background: var(--surface2); border-radius: 8px;
+    margin-bottom: 12px; border: 1px solid var(--border);
+  }
+  .booking-item:last-child, .listing-item:last-child { margin-bottom: 0; }
+  .item-title { font-size: 14px; font-weight: 500; color: var(--cream); margin-bottom: 6px; }
+  .item-meta { font-size: 12px; color: var(--muted); }
+  .status-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .status-pending { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .status-confirmed { background: rgba(90,158,111,0.15); color: var(--green); }
+  .status-cancelled { background: rgba(217,95,82,0.15); color: var(--red); }
+
+  /* ── ADD LISTING ── */
+  #page-add-listing { max-width: 700px; margin: 0 auto; padding: 48px 32px; }
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; color: var(--cream); margin-bottom: 8px;
+  }
+  .page-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 40px; }
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px;
+  }
+  .form-section-title {
+    font-size: 12px; font-weight: 500; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 20px; margin-top: 28px;
+    padding-top: 28px; border-top: 1px solid var(--border);
+  }
+  .form-section-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; color: var(--cream); margin-bottom: 8px;
+  }
+  .modal-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+  .modal-close {
+    float: right; background: none; border: none;
+    color: var(--muted); font-size: 20px; cursor: pointer;
+    margin-top: -4px; transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--red); }
+  .price-summary {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-bottom: 20px;
+  }
+  .price-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  .price-row.total { color: var(--cream); font-weight: 500; font-size: 16px; margin-bottom: 0; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+  /* ── LOADING ── */
+  .loader {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(201,168,76,0.3);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── AMENITY TAGS ── */
+  .amenity-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .amenity-tag {
+    padding: 5px 14px; border-radius: 20px;
+    font-size: 13px; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .amenity-tag.selected { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; }
+    .hero h1 { font-size: 38px; }
+    .listings-grid { grid-template-columns: 1fr; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    nav { padding: 0 16px; }
+    .section { padding: 0 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Rent<span>India</span></div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="showPage('home')">Browse</button>
+    <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard" style="display:none">Dashboard</button>
+    <button class="nav-btn" onclick="showPage('add-listing')" id="nav-add" style="display:none">+ List Property</button>
+  </div>
+  <div class="nav-right">
+    <div id="user-info">
+      <span class="user-badge" id="user-name-badge">—</span>
+      <span class="role-badge" id="user-role-badge">—</span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+    <button class="btn-primary" id="nav-auth-btn" onclick="showPage('auth')">Sign In</button>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div>
+      <div class="hero-label">Premium Rentals Across India</div>
+      <h1>Find Your <em>Perfect</em> Home Away</h1>
+      <p>Discover handpicked properties from trusted landlords. From cozy studios to luxury villas — your next home is here.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="scrollToListings()">Explore Properties</button>
+        <button class="btn-secondary" onclick="showPage('auth')">List Your Property</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-listings">—</div>
+        <div class="stat-label">Properties Available</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">Cities</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">4.8★</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="listings-section">
+    <div class="search-bar">
+      <div class="search-field">
+        <label>City</label>
+        <input type="text" id="search-city" placeholder="Mumbai, Delhi, Bangalore...">
+      </div>
+      <div class="search-field" style="max-width:140px">
+        <label>Min Price</label>
+        <input type="number" id="search-min" placeholder="₹0">
+      </div>
+      <div class="search-field" style="max-width:140px">
+        <label>Max Price</label>
+        <input type="number" id="search-max" placeholder="Any">
+      </div>
+      <div class="search-field" style="max-width:120px">
+        <label>Bedrooms</label>
+        <input type="number" id="search-beds" placeholder="Any" min="1">
+      </div>
+      <button class="btn-primary" onclick="loadListings()" style="flex-shrink:0;height:42px">Search</button>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Available Properties</div>
+      <div class="section-count" id="listings-count"></div>
+    </div>
+    <div class="listings-grid" id="listings-grid">
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>Loading properties...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="page-auth" class="page">
+  <div>
+    <div class="auth-card">
+      <div class="auth-title">Welcome Back</div>
+      <div class="auth-subtitle">Sign in or create your account</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <button class="btn-full" onclick="login()" id="btn-login">Sign In</button>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="form-register" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="reg-fname" placeholder="Raj">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="reg-lname" placeholder="Sharma">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label>Phone (optional)</label>
+          <input type="tel" id="reg-phone" placeholder="+91 98765 43210">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>I am a</label>
+          <select id="reg-role">
+            <option value="tenant">Tenant — looking to rent</option>
+            <option value="landlord">Landlord — listing a property</option>
+          </select>
+        </div>
+        <button class="btn-full" onclick="register()" id="btn-register">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page">
+  <div style="max-width:1200px;margin:0 auto;padding:48px 32px">
+    <div class="dash-header">
+      <div class="dash-greeting">Good day, <span id="dash-name">—</span></div>
+      <div class="dash-sub">Here's an overview of your activity</div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <div class="dash-card-title">My Bookings</div>
+          <button class="btn-secondary" style="font-size:13px;padding:7px 14px" onclick="loadMyBookings()">Refresh</button>
+        </div>
+        <div class="dash-card-body" id="my-bookings-list">
+          <div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">No bookings yet</div>
+        </div>
+      </div>
+      <div class="dash-card" id="landlord-panel" style="display:none">
+        <div class="dash-card-header">
+          <div class="dash-card-title">My Listings</div>
+          <button class="btn-primary" style="font-size:13px;padding:7px 14px" onclick="showPage('add-listing')">+ Add</button>
+        </div>
+        <div class="dash-card-body" id="my-listings-list">
+          <div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">No listings yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LISTING -->
+<div id="page-add-listing" class="page">
+  <div style="max-width:700px;margin:0 auto;padding:48px 32px">
+    <div class="page-title">List Your Property</div>
+    <div class="page-subtitle">Fill in the details to start receiving booking requests</div>
+    <div class="form-card">
+      <div class="form-section-title">Basic Information</div>
+      <div class="form-group">
+        <label>Property Title</label>
+        <input type="text" id="new-title" placeholder="e.g. Cozy 2BHK in Bandra West">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="new-desc" placeholder="Describe your property — amenities, neighbourhood, what makes it special..."></textarea>
+      </div>
+
+      <div class="form-section-title">Location</div>
+      <div class="form-group">
+        <label>Full Address</label>
+        <input type="text" id="new-address" placeholder="Street, Building, Area">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" id="new-city" placeholder="Mumbai">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="new-state" placeholder="Maharashtra">
+        </div>
+      </div>
+
+      <div class="form-section-title">Property Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price Per Night (₹)</label>
+          <input type="number" id="new-price" placeholder="3500">
+        </div>
+        <div class="form-group">
+          <label>Max Guests</label>
+          <input type="number" id="new-guests" placeholder="4" min="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Bedrooms</label>
+          <input type="number" id="new-beds" placeholder="2" min="1">
+        </div>
+        <div class="form-group">
+          <label>Bathrooms</label>
+          <input type="number" id="new-baths" placeholder="2" min="1">
+        </div>
+      </div>
+
+      <div class="form-section-title">Amenities</div>
+      <div class="amenity-tags" id="amenity-picker">
+        <span class="amenity-tag" onclick="toggleAmenity(this)">WiFi</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">AC</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Parking</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Kitchen</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Washing Machine</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">TV</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Gym</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Swimming Pool</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Security</span>
+        <span class="amenity-tag" onclick="toggleAmenity(this)">Power Backup</span>
+      </div>
+
+      <button class="btn-full" onclick="createListing()" id="btn-create-listing" style="margin-top:32px">Publish Listing</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title">Book Property</div>
+    <div class="modal-subtitle" id="modal-subtitle">Select your dates</div>
+    <div class="form-group">
+      <label>Check-in Date</label>
+      <input type="date" id="book-checkin">
+    </div>
+    <div class="form-group">
+      <label>Check-out Date</label>
+      <input type="date" id="book-checkout">
+    </div>
+    <div class="form-group">
+      <label>Number of Guests</label>
+      <input type="number" id="book-guests" value="1" min="1">
+    </div>
+    <div class="price-summary" id="price-summary" style="display:none">
+      <div class="price-row"><span>Price per night</span><span id="sum-ppn">—</span></div>
+      <div class="price-row"><span>Nights</span><span id="sum-nights">—</span></div>
+      <div class="price-row total"><span>Total</span><span id="sum-total">—</span></div>
+    </div>
+    <button class="btn-full" onclick="calculatePrice()" id="btn-calc">Calculate Price</button>
+    <button class="btn-full" onclick="confirmBooking()" id="btn-confirm" style="display:none;margin-top:12px">Confirm Booking</button>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let token = localStorage.getItem('token');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let selectedProperty = null;
+
+// ── TOAST ──────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  setTimeout(() => el.className = '', 3000);
+}
+
+// ── API HELPER ─────────────────────────────────
+async function api(path, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, {
+    method, headers,
+    body: body ? JSON.stringify(body) : null
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Something went wrong');
+  return data;
+}
+
+// ── NAVIGATION ─────────────────────────────────
+function showPage(page) {
+  if ((page === 'dashboard' || page === 'add-listing') && !token) {
+    toast('Please sign in first', 'error');
+    page = 'auth';
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.querySelector(`#page-${page}`);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (page === 'home') {
+    document.querySelector('.nav-btn').classList.add('active');
+    loadListings();
+  }
+  if (page === 'dashboard') loadDashboard();
+  window.scrollTo(0, 0);
+}
+
+function scrollToListings() {
+  document.getElementById('listings-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── AUTH STATE ─────────────────────────────────
+function updateAuthUI() {
+  const loggedIn = !!token && !!currentUser;
+  document.getElementById('nav-auth-btn').style.display = loggedIn ? 'none' : 'block';
+  document.getElementById('user-info').classList.toggle('visible', loggedIn);
+
+  if (loggedIn) {
+    document.getElementById('user-name-badge').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
+    const roleBadge = document.getElementById('user-role-badge');
+    roleBadge.textContent = currentUser.role;
+    roleBadge.className = `role-badge ${currentUser.role}`;
+    document.getElementById('nav-dashboard').style.display = 'block';
+    if (currentUser.role === 'landlord') {
+      document.getElementById('nav-add').style.display = 'block';
+    }
+    document.getElementById('dash-name').textContent = currentUser.first_name;
+  } else {
+    document.getElementById('nav-dashboard').style.display = 'none';
+    document.getElementById('nav-add').style.display = 'none';
+  }
+}
+
+function logout() {
+  token = null; currentUser = null;
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  updateAuthUI();
+  showPage('home');
+  toast('Logged out successfully');
+}
+
+// ── AUTH TAB ───────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+// ── LOGIN ──────────────────────────────────────
+async function login() {
+  const btn = document.getElementById('btn-login');
+  btn.innerHTML = '<span class="loader"></span>Signing in...';
+  btn.disabled = true;
+  try {
+    const data = await api('/users/login', 'POST', {
+      email: document.getElementById('login-email').value,
+      password: document.getElementById('login-password').value
+    });
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(currentUser));
+    updateAuthUI();
+    toast(`Welcome back, ${currentUser.first_name}!`);
+    if (currentUser.role === 'landlord') {
+      showPage('dashboard');
+    } else {
+      showPage('home');
+    }
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.innerHTML = 'Sign In';
+    btn.disabled = false;
+  }
+}
+
+// ── REGISTER ───────────────────────────────────
+async function register() {
+  const btn = document.getElementById('btn-register');
+  btn.innerHTML = '<span class="loader"></span>Creating account...';
+  btn.disabled = true;
+  try {
+    await api('/users/register', 'POST', {
+      email: document.getElementById('reg-email').value,
+      password: document.getElementById('reg-password').value,
+      first_name: document.getElementById('reg-fname').value,
+      last_name: document.getElementById('reg-lname').value,
+      phone: document.getElementById('reg-phone').value,
+      role: document.getElementById('reg-role').value
+    });
+    toast('Account created! Please sign in.');
+    switchTab('login');
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.innerHTML = 'Create Account';
+    btn.disabled = false;
+  }
+}
+
+// ── LISTINGS ───────────────────────────────────
+async function loadListings() {
+  const grid = document.getElementById('listings-grid');
+  grid.innerHTML = '<div class="empty-state"><div class="loader" style="width:32px;height:32px"></div></div>';
+
+  const city = document.getElementById('search-city')?.value || '';
+  const min  = document.getElementById('search-min')?.value || '';
+  const max  = document.getElementById('search-max')?.value || '';
+  const beds = document.getElementById('search-beds')?.value || '';
+
+  let qs = '?';
+  if (city) qs += `city=${city}&`;
+  if (min)  qs += `min_price=${min}&`;
+  if (max)  qs += `max_price=${max}&`;
+  if (beds) qs += `bedrooms=${beds}&`;
+
+  try {
+    const data = await api('/listings' + qs);
+    const listings = data.listings || [];
+    document.getElementById('stat-listings').textContent = listings.length;
+    document.getElementById('listings-count').textContent = `${listings.length} properties found`;
+
+    if (listings.length === 0) {
+      grid.innerHTML = `<div class="empty-state"><div class="icon">🏠</div><p>No properties found. Try different filters.</p></div>`;
+      return;
+    }
+
+    const emojis = ['🏙️','🏡','🌆','🏘️','🌇','🏢'];
+    grid.innerHTML = listings.map((l, i) => `
+      <div class="listing-card">
+        <div class="listing-img">
+          ${emojis[i % emojis.length]}
+          <div class="listing-badge">₹${l.price_per_night.toLocaleString()}/night</div>
+        </div>
+        <div class="listing-body">
+          <div class="listing-city">${l.city}, ${l.state}</div>
+          <div class="listing-title">${l.title}</div>
+          <div class="listing-address">${l.address}</div>
+          <div class="listing-meta">
+            <div class="listing-meta-item">🛏 ${l.bedrooms} bed</div>
+            <div class="listing-meta-item">🚿 ${l.bathrooms} bath</div>
+            <div class="listing-meta-item">👥 ${l.max_guests} guests</div>
+          </div>
+          ${l.amenities.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+            ${l.amenities.slice(0,3).map(a => `<span style="font-size:11px;padding:3px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--muted)">${a}</span>`).join('')}
+            ${l.amenities.length > 3 ? `<span style="font-size:11px;padding:3px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--muted)">+${l.amenities.length - 3} more</span>` : ''}
+          </div>` : ''}
+          <div class="listing-footer">
+            <div>
+              <div class="listing-price">₹${l.price_per_night.toLocaleString()} <span>/night</span></div>
+            </div>
+            <button class="btn-book" onclick="openBooking(${JSON.stringify(l).replace(/"/g, '&quot;')})">
+              Book Now
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+  }
+}
+
+// ── BOOKING MODAL ──────────────────────────────
+function openBooking(listing) {
+  if (!token) {
+    toast('Please sign in to book a property', 'error');
+    showPage('auth');
+    return;
+  }
+  selectedProperty = listing;
+  document.getElementById('modal-title').textContent = listing.title;
+  document.getElementById('modal-subtitle').textContent = `${listing.city} • ₹${listing.price_per_night.toLocaleString()}/night`;
+  document.getElementById('price-summary').style.display = 'none';
+  document.getElementById('btn-calc').style.display = 'block';
+  document.getElementById('btn-confirm').style.display = 'none';
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('book-checkin').min = today;
+  document.getElementById('book-checkout').min = today;
+
+  document.getElementById('booking-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('booking-modal').classList.remove('open');
+  selectedProperty = null;
+}
+
+function calculatePrice() {
+  const cin  = document.getElementById('book-checkin').value;
+  const cout = document.getElementById('book-checkout').value;
+  if (!cin || !cout) { toast('Please select both dates', 'error'); return; }
+  const nights = Math.ceil((new Date(cout) - new Date(cin)) / 86400000);
+  if (nights <= 0) { toast('Check-out must be after check-in', 'error'); return; }
+  const total = nights * selectedProperty.price_per_night;
+  document.getElementById('sum-ppn').textContent = `₹${selectedProperty.price_per_night.toLocaleString()}`;
+  document.getElementById('sum-nights').textContent = `${nights} night${nights > 1 ? 's' : ''}`;
+  document.getElementById('sum-total').textContent = `₹${total.toLocaleString()}`;
+  document.getElementById('price-summary').style.display = 'block';
+  document.getElementById('btn-calc').style.display = 'none';
+  document.getElementById('btn-confirm').style.display = 'block';
+}
+
+async function confirmBooking() {
+  const btn = document.getElementById('btn-confirm');
+  btn.innerHTML = '<span class="loader"></span>Booking...';
+  btn.disabled = true;
+  try {
+    const data = await api('/bookings', 'POST', {
+      property_id: selectedProperty.id,
+      check_in: document.getElementById('book-checkin').value,
+      check_out: document.getElementById('book-checkout').value,
+      guests: parseInt(document.getElementById('book-guests').value)
+    });
+    closeModal();
+    toast(`Booking confirmed! Total: ₹${data.booking.total_price.toLocaleString()}`);
+    loadMyBookings();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.innerHTML = 'Confirm Booking';
+    btn.disabled = false;
+  }
+}
+
+// ── DASHBOARD ──────────────────────────────────
+function loadDashboard() {
+  if (!currentUser) return;
+  document.getElementById('dash-name').textContent = currentUser.first_name;
+  loadMyBookings();
+  if (currentUser.role === 'landlord') {
+    document.getElementById('landlord-panel').style.display = 'block';
+    loadMyListings();
+  }
+}
+
+async function loadMyBookings() {
+  const el = document.getElementById('my-bookings-list');
+  try {
+    const data = await api('/bookings/my');
+    const bookings = data.bookings || [];
+    if (bookings.length === 0) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">No bookings yet</div>';
+      return;
+    }
+    el.innerHTML = bookings.map(b => `
+      <div class="booking-item">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+          <div class="item-title">Property #${b.property_id}</div>
+          <span class="status-badge status-${b.status}">${b.status}</span>
+        </div>
+        <div class="item-meta">
+          📅 ${b.check_in} → ${b.check_out} &nbsp;•&nbsp;
+          👥 ${b.guests} guests &nbsp;•&nbsp;
+          ₹${b.total_price.toLocaleString()}
+        </div>
+        ${b.status === 'pending' ? `<button onclick="cancelBooking(${b.id})" style="margin-top:10px;background:none;border:1px solid var(--red);color:var(--red);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer">Cancel</button>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:14px;text-align:center;padding:20px">${e.message}</div>`;
+  }
+}
+
+async function cancelBooking(id) {
+  try {
+    await api(`/bookings/${id}/cancel`, 'POST');
+    toast('Booking cancelled');
+    loadMyBookings();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function loadMyListings() {
+  const el = document.getElementById('my-listings-list');
+  try {
+    const data = await api('/listings');
+    const mine = (data.listings || []).filter(l => l.landlord_id == currentUser.id);
+    if (mine.length === 0) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">No listings yet. Add your first property!</div>';
+      return;
+    }
+    el.innerHTML = mine.map(l => `
+      <div class="listing-item">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <div class="item-title">${l.title}</div>
+            <div class="item-meta">${l.city}, ${l.state} • ₹${l.price_per_night.toLocaleString()}/night • ${l.bedrooms}BHK</div>
+          </div>
+          <span class="status-badge ${l.is_available ? 'status-confirmed' : 'status-cancelled'}">
+            ${l.is_available ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    el.innerHTML = `<div style="color:var(--red);font-size:14px;padding:20px">${e.message}</div>`;
+  }
+}
+
+// ── AMENITY PICKER ─────────────────────────────
+function toggleAmenity(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedAmenities() {
+  return [...document.querySelectorAll('.amenity-tag.selected')].map(t => t.textContent);
+}
+
+// ── CREATE LISTING ─────────────────────────────
+async function createListing() {
+  const btn = document.getElementById('btn-create-listing');
+  btn.innerHTML = '<span class="loader"></span>Publishing...';
+  btn.disabled = true;
+  try {
+    await api('/listings', 'POST', {
+      title: document.getElementById('new-title').value,
+      description: document.getElementById('new-desc').value,
+      address: document.getElementById('new-address').value,
+      city: document.getElementById('new-city').value,
+      state: document.getElementById('new-state').value,
+      price_per_night: parseFloat(document.getElementById('new-price').value),
+      max_guests: parseInt(document.getElementById('new-guests').value) || 2,
+      bedrooms: parseInt(document.getElementById('new-beds').value) || 1,
+      bathrooms: parseInt(document.getElementById('new-baths').value) || 1,
+      amenities: getSelectedAmenities()
+    });
+    toast('Property listed successfully!');
+    showPage('dashboard');
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.innerHTML = 'Publish Listing';
+    btn.disabled = false;
+  }
+}
+
+// ── ENTER KEY ──────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const page = document.querySelector('.page.active')?.id;
+    if (page === 'page-auth') {
+      const tab = document.getElementById('tab-login').classList.contains('active');
+      tab ? login() : register();
+    }
+  }
+});
+
+// ── INIT ───────────────────────────────────────
+updateAuthUI();
+loadListings();
+</script>
+</body>
+</html>
